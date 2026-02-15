@@ -98,11 +98,25 @@
   margin-bottom: var(--spacing-sm);
 }
 
+.header-main {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.file-name {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: 'Geist Mono', monospace;
+}
+
 .panel-actions,
 .preview-actions {
   display: flex;
-  gap: var(--spacing-sm);
+  align-items: center;
+  gap: 8px;
 }
+
 
 .quick-rules,
 .preview-box,
@@ -139,4 +153,51 @@ fieldset label {
   border: 1px solid var(--panel-border);
   background: var(--panel-bg);
 }
+
+/* --- Drawer & Overlay Styles --- */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+}
+
+.privacy-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 420px;
+  max-width: 90vw;
+  background: var(--surface);
+  border-left: 1px solid var(--line);
+  z-index: 101;
+  padding: var(--spacing-lg);
+  overflow-y: auto;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
+  border-radius: 0; /* Reset for full-height drawer */
+}
+
+/* --- Vue Transitions --- */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.slide-enter-from {
+  transform: translateX(100%);
+}
+.slide-leave-to {
+  transform: translateX(100%);
+}
+
 

@@ -9,16 +9,13 @@ const emit = defineEmits<{
   (event: 'update:privacyEnabled', value: boolean): void
   (event: 'upload', payload: { name: string; text: string }): void
   (event: 'clear'): void
+  (event: 'format'): void
+  (event: 'run'): void
 }>()
 
 function onTextInput(event: Event): void {
   const target = event.target as HTMLTextAreaElement
   emit('update:modelValue', target.value)
-}
-
-function onTogglePrivacy(event: Event): void {
-  const target = event.target as HTMLInputElement
-  emit('update:privacyEnabled', target.checked)
 }
 
 function onUpload(event: Event): void {
@@ -39,24 +36,50 @@ function onUpload(event: Event): void {
 <template>
   <section class="panel">
     <header class="panel-header">
-      <h2>Input</h2>
-      <label class="privacy-toggle" title="Redact sensitive info before converting. Runs locally.">
-        <input type="checkbox" :checked="props.privacyEnabled" @change="onTogglePrivacy" />
-        Privacy mode
-      </label>
-    </header>
+      <div class="header-main">
+        <h2>Input</h2>
+        <span class="file-name" v-if="props.modelValue && props.modelValue.length > 0">
+          {{ props.modelValue.length }} characters
+        </span>
+      </div>
+      
+      <div class="panel-actions">
+        <!-- Main Convert Action -->
+        <button type="button" class="primary-btn sm" @click="emit('run')" :disabled="!props.modelValue">
+          Convert
+        </button>
 
-    <div class="panel-actions">
-      <label class="upload-btn">
-        Upload file
-        <input type="file" accept=".json,.csv,.yaml,.yml,.txt" @change="onUpload" />
-      </label>
-      <button type="button" class="ghost-btn" @click="emit('clear')">Clear</button>
-    </div>
+        <!-- Dedicated Format Utility -->
+        <button type="button" class="ghost-btn sm" title="Prettify / Format input" @click="emit('format')" :disabled="!props.modelValue">
+          ✨ <span class="hide-mobile">Format</span>
+        </button>
+
+        <!-- Privacy Toggle -->
+        <button
+          type="button"
+          class="ghost-btn sm"
+          :class="{ active: props.privacyEnabled }"
+          @click="emit('update:privacyEnabled', !props.privacyEnabled)"
+        >
+          🛡️ <span class="hide-mobile">Privacy</span>
+        </button>
+
+        <!-- Custom Upload -->
+        <label class="upload-btn-v2">
+          <input type="file" accept=".json,.csv,.yaml,.yml,.txt" @change="onUpload" />
+          <span class="ghost-btn sm">📁 <span class="hide-mobile">Upload</span></span>
+        </label>
+
+        <!-- Clear -->
+        <button type="button" class="ghost-btn sm" @click="emit('clear')" :disabled="!props.modelValue">
+          🧹
+        </button>
+      </div>
+    </header>
 
     <textarea
       class="text-area"
-      placeholder="Paste JSON / CSV / YAML here"
+      placeholder="Paste content here or upload a file..."
       aria-label="Input content"
       :value="props.modelValue"
       @input="onTextInput"

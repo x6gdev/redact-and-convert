@@ -17,6 +17,18 @@ vi.mock('./features/redact/redaction', () => ({
   applyRedaction: (text: string, config: unknown) => applyRedactionMock(text, config),
 }))
 
+function getButtonByText(wrapper: ReturnType<typeof mount>, text: string) {
+  const button = wrapper
+    .findAll('button')
+    .find((candidate) => candidate.text().includes(text))
+
+  if (!button) {
+    throw new Error(`Button with text "${text}" not found`)
+  }
+
+  return button
+}
+
 describe('App integration', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -26,12 +38,12 @@ describe('App integration', () => {
     runToolMock.mockReturnValue('converted-output')
     const wrapper = mount(App)
 
-    const input = wrapper.get('textarea[placeholder="Paste JSON / CSV / YAML here"]')
+    const input = wrapper.get('textarea[aria-label="Input content"]')
     await input.setValue('{"name":"Alice"}')
-    await wrapper.get('.action-row .primary-btn').trigger('click')
+    await getButtonByText(wrapper, 'Convert').trigger('click')
 
     expect(runToolMock).toHaveBeenCalledWith('json-csv', '{"name":"Alice"}')
-    const output = wrapper.get('textarea[placeholder="Converted result appears here"]')
+    const output = wrapper.get('textarea[aria-label="Output content"]')
     expect((output.element as HTMLTextAreaElement).value).toBe('converted-output')
   })
 
@@ -41,8 +53,8 @@ describe('App integration', () => {
     })
     const wrapper = mount(App)
 
-    await wrapper.get('textarea[placeholder="Paste JSON / CSV / YAML here"]').setValue('bad')
-    await wrapper.get('.action-row .primary-btn').trigger('click')
+    await wrapper.get('textarea[aria-label="Input content"]').setValue('bad')
+    await getButtonByText(wrapper, 'Convert').trigger('click')
 
     expect(wrapper.get('.error-text').text()).toBe('convert failed')
   })
@@ -55,11 +67,10 @@ describe('App integration', () => {
     applyRedactionMock.mockReturnValue('[REDACTED] user')
 
     const wrapper = mount(App)
-    const input = wrapper.get('textarea[placeholder="Paste JSON / CSV / YAML here"]')
+    const input = wrapper.get('textarea[aria-label="Input content"]')
     await input.setValue('a@test.com user')
 
-    const privacyToggle = wrapper.get('label.privacy-toggle input[type="checkbox"]')
-    await privacyToggle.setValue(true)
+    await getButtonByText(wrapper, 'Privacy').trigger('click')
 
     await wrapper.get('.privacy-panel .quick-rules .primary-btn').trigger('click')
 
@@ -80,8 +91,8 @@ describe('App integration', () => {
     })
     const wrapper = mount(App)
 
-    await wrapper.get('textarea[placeholder="Paste JSON / CSV / YAML here"]').setValue('{"password":"x"}')
-    await wrapper.get('label.privacy-toggle input[type="checkbox"]').setValue(true)
+    await wrapper.get('textarea[aria-label="Input content"]').setValue('{"password":"x"}')
+    await getButtonByText(wrapper, 'Privacy').trigger('click')
 
     const jsonKeyInput = wrapper.get('.advanced-body input[placeholder="token,password,email"]')
     await jsonKeyInput.setValue('password')

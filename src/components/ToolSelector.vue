@@ -9,7 +9,6 @@ const tools: Array<{ id: ToolId; label: string }> = [
   { id: 'csv-json', label: 'CSV -> JSON' },
   { id: 'yaml-json', label: 'YAML -> JSON' },
   { id: 'json-yaml', label: 'JSON -> YAML' },
-  { id: 'format', label: 'Format' },
 ]
 
 function onSelect(tool: ToolId): void {

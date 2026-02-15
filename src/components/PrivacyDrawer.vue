@@ -78,17 +78,24 @@ function kindLabel(kind: RedactKind): string {
 </script>
 
 <template>
-  <section v-if="props.enabled" class="panel privacy-panel">
-    <h2>Privacy</h2>
+  <section v-if="props.enabled" class="privacy-panel">
+    <header class="panel-header">
+      <h2>Privacy & Redaction</h2>
+      <button type="button" class="ghost-btn" @click="emit('close')" aria-label="Close settings">✕</button>
+    </header>
 
     <div class="quick-rules">
-      <h3>Quick redaction</h3>
-      <label><input type="checkbox" :checked="props.quickRules.email" @change="toggleQuickRule('email', $event)" /> Emails</label>
-      <label><input type="checkbox" :checked="props.quickRules.phone" @change="toggleQuickRule('phone', $event)" /> Phone numbers</label>
-      <label><input type="checkbox" :checked="props.quickRules.ip" @change="toggleQuickRule('ip', $event)" /> IP addresses (IPv4)</label>
-      <label><input type="checkbox" :checked="props.quickRules.token" @change="toggleQuickRule('token', $event)" /> Tokens / API keys</label>
-      <p class="hint">Nothing is uploaded. Redaction happens in your browser.</p>
-      <button type="button" class="primary-btn" @click="emit('preview')">Preview redaction</button>
+      <h3>Auto-Detection</h3>
+      <p class="hint">Enable rules to find and mask sensitive data locally.</p>
+      
+      <div class="rules-grid">
+        <label><input type="checkbox" :checked="props.quickRules.email" @change="toggleQuickRule('email', $event)" /> Emails</label>
+        <label><input type="checkbox" :checked="props.quickRules.phone" @change="toggleQuickRule('phone', $event)" /> Phone numbers</label>
+        <label><input type="checkbox" :checked="props.quickRules.ip" @change="toggleQuickRule('ip', $event)" /> IP addresses</label>
+        <label><input type="checkbox" :checked="props.quickRules.token" @change="toggleQuickRule('token', $event)" /> API Tokens</label>
+      </div>
+      
+      <button type="button" class="primary-btn" style="width: 100%; margin-top: 12px;" @click="emit('preview')">Scan for sensitive data</button>
     </div>
 
     <div class="preview-box" v-if="hasPreview">

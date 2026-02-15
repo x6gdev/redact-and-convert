@@ -41,14 +41,13 @@ const state = reactive({
   } as AdvancedState,
 })
 
-const primaryLabel = computed(() => (state.activeTool === 'format' ? 'Format' : 'Convert'))
 const themeLabel = computed(() => (state.theme === 'moon' ? 'Moon' : 'Dawn'))
 const activeToolLabel = computed(() => {
   if (state.activeTool === 'json-csv') return 'JSON -> CSV'
   if (state.activeTool === 'csv-json') return 'CSV -> JSON'
   if (state.activeTool === 'yaml-json') return 'YAML -> JSON'
   if (state.activeTool === 'json-yaml') return 'JSON -> YAML'
-  return 'Formatter'
+  return 'Custom'
 })
 
 function onToolChange(tool: ToolId): void {
@@ -144,6 +143,21 @@ function onCancelPreview(): void {
   state.preview = { status: 'idle' }
 }
 
+function onFormat(): void {
+  if (!state.inputText.trim()) return
+  state.error = undefined
+  state.infoMessage = ''
+  try {
+    state.inputText = runTool('format', state.inputText)
+    state.infoMessage = 'Input formatted.'
+  } catch (error) {
+    state.error = {
+      stage: 'format',
+      message: error instanceof Error ? error.message : 'Formatting failed',
+    }
+  }
+}
+
 function onRunPrimaryAction(): void {
   state.error = undefined
   state.infoMessage = ''
@@ -152,7 +166,7 @@ function onRunPrimaryAction(): void {
     state.outputText = runTool(state.activeTool, state.inputText)
   } catch (error) {
     state.error = {
-      stage: state.activeTool === 'format' ? 'format' : 'convert',
+      stage: 'convert',
       message: error instanceof Error ? error.message : 'Action failed',
     }
   }
@@ -236,30 +250,37 @@ function extensionForTool(tool: ToolId): string {
           @update:privacy-enabled="onPrivacyEnabledChange"
           @upload="onUpload"
           @clear="onClearInput"
-        />
-
-        <PrivacyDrawer
-          :enabled="state.privacyEnabled"
-          :quick-rules="state.quickRules"
-          :preview="state.preview"
-          :advanced="state.advanced"
-          @update:quick-rules="onQuickRulesChange"
-          @preview="onPreviewRedaction"
-          @apply="onApplyRedaction"
-          @cancel="onCancelPreview"
-          @update:advanced="onAdvancedChange"
+          @format="onFormat"
+          @run="onRunPrimaryAction"
         />
       </div>
 
       <OutputPanel :output-text="state.outputText" @copy="onCopyOutput" @download="onDownloadOutput" />
     </main>
 
-    <section class="action-row">
-      <button type="button" class="primary-btn" @click="onRunPrimaryAction">{{ primaryLabel }}</button>
-      <p>Local execution only. Your data never leaves this device.</p>
-    </section>
+    <!-- Slide-over Privacy Drawer -->
+    <Transition name="fade">
+      <div v-if="state.privacyEnabled" class="drawer-overlay" @click="onPrivacyEnabledChange(false)" />
+    </Transition>
+
+    <Transition name="slide">
+      <PrivacyDrawer
+        v-if="state.privacyEnabled"
+        :enabled="state.privacyEnabled"
+        :quick-rules="state.quickRules"
+        :preview="state.preview"
+        :advanced="state.advanced"
+        @update:quick-rules="onQuickRulesChange"
+        @preview="onPreviewRedaction"
+        @apply="onApplyRedaction"
+        @cancel="onCancelPreview"
+        @update:advanced="onAdvancedChange"
+        @close="onPrivacyEnabledChange(false)"
+      />
+    </Transition>
 
     <p v-if="state.error" class="error-text" role="alert">{{ state.error.message }}</p>
     <p v-else-if="state.infoMessage" class="info-text" aria-live="polite">{{ state.infoMessage }}</p>
+
   </div>
 </template>
